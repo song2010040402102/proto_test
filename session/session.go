@@ -20,7 +20,7 @@ type Session struct {
 	conn               *net.TCPConn
 	serv               bool
 	Loginname          string
-	Data 		   		interface{}
+	Data               interface{}
 	readCallback       func(*Session, []byte)
 	disconnectCallback func(*Session)
 	writeCache         chan []byte

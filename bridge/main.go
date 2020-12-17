@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"strconv"
+	"strings"
 	"syscall"
 	"text/template"
 
@@ -63,7 +63,7 @@ func protoHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		if msgId == 0 {
 			type IdName struct {
-				Id int32 `json:"id"`
+				Id   int32  `json:"id"`
 				Name string `json:"name"`
 			}
 			var idNames []*IdName

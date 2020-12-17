@@ -28,10 +28,10 @@ type RetMsg struct {
 }
 
 type ProtoLog struct {
-	Ts string `json:"ts"`
-	Dir string `json:"dir"`
-	Id int32 `json:"id"`
-	Msg string `json:"msg"`
+	Ts     string `json:"ts"`
+	Dir    string `json:"dir"`
+	Id     int32  `json:"id"`
+	Msg    string `json:"msg"`
 	Detail string `json:"detail"`
 }
 
@@ -57,17 +57,17 @@ type RetLog struct {
 }
 
 type UserData struct {
-	lock sync.Mutex
-	tick *time.Ticker
+	lock    sync.Mutex
+	tick    *time.Ticker
 	webTick *time.Ticker
-	webReq bool
-	logs []*ProtoLog
+	webReq  bool
+	logs    []*ProtoLog
 }
 
 func NewUserData() *UserData {
 	return &UserData{
 		webReq: false,
-		logs: make([]*ProtoLog, 0, 16),
+		logs:   make([]*ProtoLog, 0, 16),
 	}
 }
 
@@ -80,7 +80,7 @@ func (ud *UserData) PushLog(log *ProtoLog) {
 func (ud *UserData) PopAllLog() []*ProtoLog {
 	ud.lock.Lock()
 	defer ud.lock.Unlock()
-	ret :=  ud.logs
+	ret := ud.logs
 	ud.logs = make([]*ProtoLog, 0, 16)
 	return ret
 }
@@ -123,7 +123,7 @@ func doConnect(server string) *session.Session {
 
 func doLogin(server, loginname string) *RetMsg {
 	res := &RetMsg{}
-	sess := session.GetManager().GetSession(server+loginname)
+	sess := session.GetManager().GetSession(server + loginname)
 	if sess != nil {
 		res.Ret = ERROR_HAVE_LOGIN
 		return res
@@ -162,7 +162,7 @@ func doLogin(server, loginname string) *RetMsg {
 
 func doLogout(server, loginname string) *RetMsg {
 	res := &RetMsg{}
-	sess := session.GetManager().GetSession(server+loginname)
+	sess := session.GetManager().GetSession(server + loginname)
 	if sess == nil {
 		res.Ret = ERROR_NOT_LOGIN
 		return res
@@ -173,7 +173,7 @@ func doLogout(server, loginname string) *RetMsg {
 
 func doSendProto(server, loginname string, msg_id int32, js string) *RetMsg {
 	res := &RetMsg{}
-	sess := session.GetManager().GetSession(server+loginname)
+	sess := session.GetManager().GetSession(server + loginname)
 	if sess == nil {
 		res.Ret = ERROR_NOT_LOGIN
 		return res
@@ -190,7 +190,7 @@ func doSendProto(server, loginname string, msg_id int32, js string) *RetMsg {
 
 func getLog(server, loginname string) *RetLog {
 	res := &RetLog{}
-	sess := session.GetManager().GetSession(server+loginname)
+	sess := session.GetManager().GetSession(server + loginname)
 	if sess == nil {
 		res.Ret = ERROR_NOT_LOGIN
 		return res
