@@ -1,0 +1,16 @@
+package protocol;
+
+option optimize_for = SPEED;
+
+import "common.proto";
+
+message C2S_Login {
+    optional ProtocolType type = 1 [default = C2S_LOGIN];
+    required string loginname = 2;
+}
+
+message S2C_Login {
+    optional ProtocolType type = 1 [default = S2C_LOGIN];
+    optional int32 ret = 2;
+    required string loginname = 3;
+}

@@ -1,0 +1,13 @@
+package protocol;
+
+option optimize_for = SPEED;
+
+import "common.proto";
+
+message C2S_KeepAlive {
+    optional ProtocolType type = 1 [default = C2S_KEEP_ALIVE];
+}
+
+message S2C_KeepAlive {
+    optional ProtocolType type = 1 [default = S2C_KEEP_ALIVE];
+}

@@ -1,0 +1,216 @@
+<html>
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.13.0/lib/theme-chalk/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.0"></script>
+    <script src="https://unpkg.com/element-ui@2.13.0/lib/index.js"></script>
+    <script type="text/javascript">
+        function get_req(url, callback) {
+            var httpRequest = new XMLHttpRequest();
+            httpRequest.open('GET', url, true);
+            httpRequest.send(null);
+            httpRequest.onreadystatechange = function () {
+                callback(httpRequest.readyState, httpRequest.status, httpRequest.responseText);
+            };
+        }
+
+        function post_req(url, para, callback) {
+            var httpRequest = new XMLHttpRequest();
+            httpRequest.open('POST', url, true);
+            httpRequest.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+            httpRequest.send(para);
+            httpRequest.onreadystatechange = function () {
+                callback(httpRequest.readyState, httpRequest.status, httpRequest.responseText);
+            };
+        }
+    </script>
+</head>
+
+<body>
+    <div id="proto_test">
+        <el-form v-if="!login_state" :model="form" align="center">
+            <el-select v-model="form.server" style="margin-top:300px;width:300px">
+                <el-option
+                  v-for="item in form.server_options"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+                </el-option>
+            </el-select></br>
+            <el-input v-model="form.loginname" placeholder="请输入用户名" clearable style="margin-top:20px;width:300px"></el-input></br>
+            <el-button type="primary" plain @click="login()" style="margin-top:10px">登录</el-button>
+        </el-form>
+        <el v-else>
+            <el style="float:left;width:30%" align="left">
+                <el-tag v-text="get_label(form.server_options, form.server)"></el-tag>
+                <el-tag v-text="form.loginname"></el-tag>
+                <el-button type="primary" plain @click="logout()" style="margin-left:1%">退出</el-button>
+                <el-select v-model="proto" filterable remote reserve-keyword placeholder="请输入协议" :remote-method="remote_method" @change="proto_change" style="margin-top:1%;width:100%">
+                    <el-option
+                      v-for="item in proto_options"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value">
+                    </el-option>
+                </el-select>
+                <el-input type="textarea" v-model="proto_para" :rows="42" style="margin-top:1%"></el-input>
+                <el-button type="primary" plain @click="send_proto()" style="margin:1% auto; display: block;">发送</el-button>
+            </el>
+            <el-table :data="tableData.filter(data => !search || data.msg.toLowerCase().includes(search.toLowerCase()))"
+                :max-height="document.documentElement.clientHeight*0.95" style="width: 70%">
+                <el-table-column sortable label="time" prop="ts" width="300px" align="center">
+                </el-table-column>
+                <el-table-column label="send/recv" prop="dir" width="150px" align="center"
+                    :filters="[{text: 'send', value: 'send' }, {text: 'recv', value: 'recv'}]"
+                    :filter-method="filter_tag" filter-placement="bottom-end">
+                </el-table-column>
+                <el-table-column label="id" prop="id" width="150px" align="center">
+                </el-table-column>
+                <el-table-column label="message" prop="msg" width="400px" align="center">
+                </el-table-column>
+                <el-table-column label="" prop="detail" align="left">
+                    <template slot="header" slot-scope="scope">
+                        <el-input v-model="search" size="mini" placeholder="输入关键字搜索" clearable></el-input>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </el>
+    </div>
+    <script>
+        var g_protoTest = new Vue({el:'#proto_test',
+            data:{
+                form: {
+                    loginname: "",
+                    server: "127.0.0.1:7001",
+                    server_options: [
+                        {value: "127.0.0.1:7001", label: '扫地僧服'}
+                    ]
+                },
+                login_state: false,
+                all_proto: [],
+                proto_options: [],
+                proto: "",
+                proto_para: "",
+                tableData: [],
+                search: '',
+                log_timer: null
+            },
+            mounted() {
+                var obj = this;
+                get_req("proto", function(state, code, res) {
+                    if (state == 4 && code == 200) {
+                        var id_names = JSON.parse(res).sort(function(a, b) {a.name < b.name;});
+                        for (var i = 0; i < id_names.length; i++) {
+                            obj.all_proto.push({value: id_names[i].id, label: id_names[i].name});
+                        }
+                        obj.proto_options = obj.all_proto;
+                    }
+                });
+            },
+            methods: {
+                get_label(options, val) {
+                    for (var i = 0; i < options.length; i++) {
+                        if (options[i].value == val) {
+                            return options[i].label;
+                        }
+                    }
+                    return "";
+                },
+                reback() {
+                    this.login_state = false;
+                    this.proto = "";
+                    this.proto_para = "";
+                    this.tableData = [];
+                    this.search = "";
+                    clearInterval(this.log_timer);
+                },
+                login() {
+                    var obj = this
+                    var para = "server=" + this.form.server + "&loginname=" + this.form.loginname;
+                    post_req("login", para, function(state, code, res) {
+                        if (state == 4 && code == 200) {
+                            var msg = JSON.parse(res);
+                            if (msg.ret == 0) {
+                                obj.get_log();
+                            } else {
+                                alert("登录失败");
+                            }
+                        }
+                    });
+                },
+                logout() {
+                    var obj = this
+                    var para = "server=" + this.form.server + "&loginname=" + this.form.loginname;
+                    post_req("logout", para, function(state, code, res) {
+                        if (state == 4 && code == 200) {
+                            var msg = JSON.parse(res);
+                            if (msg.ret == 0) {
+                                obj.reback();
+                            } else {
+                                alert("注销失败");
+                            }
+                        }
+                    });
+                },
+                send_proto() {
+                    var obj = this
+                    var para = "server=" + this.form.server + "&loginname=" + this.form.loginname + "&msg_id=" + this.proto + "&js=" + this.proto_para;
+                    post_req("proto", para, function(state, code, res) {
+                        if (state == 4 && code == 200) {
+                            var msg = JSON.parse(res);
+                            if (msg.ret != 0) {
+                                alert("协议发送失败");
+                            }
+                        }
+                    });
+                },
+                get_log() {
+                    var obj = this;
+                    var count = 0;
+                    var url = "log?server=" + this.form.server + "&loginname=" + this.form.loginname;
+                    this.log_timer = setInterval(function(){
+                        get_req(url, function(state, code, res) {
+                            if (state == 4 && code == 200) {
+                                var msg = JSON.parse(res);
+                                if (msg.ret == 0) {
+                                    obj.login_state = true;
+                                    for (var i = 0; i < msg.logs.length; i++) {
+                                        obj.tableData.push(msg.logs[i]);
+                                    }
+                                }
+                                if (!obj.login_state) {
+                                    count++;
+                                    if (count > 20) {
+                                        clearInterval(obj.log_timer);
+                                        alert("登录超时");
+                                    }
+                                }
+                            }
+                        });
+                    }, 500);
+                },
+                remote_method(query) {
+                    if (query !== '') {
+                        this.proto_options = this.all_proto.filter(item => {
+                            return item.label.toLowerCase().indexOf(query.toLowerCase()) > -1;
+                        });
+                    } else {
+                        this.proto_options = this.all_proto;
+                    }
+                },
+                proto_change(value) {
+                    var obj = this;
+                    get_req("proto?msg_id="+value, function(state, code, res) {
+                        if (state == 4 && code == 200) {
+                            obj.proto_para = res;
+                        }
+                    });
+                },
+                filter_tag(value, row) {
+                    return row.dir === value;
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

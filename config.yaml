@@ -1,0 +1,8 @@
+server:
+  listen: 0.0.0.0:7001
+
+bridge:
+  listen: 0.0.0.0:7002
+  web: ../web/index.html
+
+protocol: ../protobuf/protocol

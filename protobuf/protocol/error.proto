@@ -1,0 +1,7 @@
+package protocol;
+
+option optimize_for = SPEED;
+
+enum ProtocolError {
+    HAVE_LOGIN = 1;
+}

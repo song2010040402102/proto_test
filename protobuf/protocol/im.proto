@@ -1,0 +1,27 @@
+package protocol;
+
+option optimize_for = SPEED;
+
+import "common.proto";
+
+message C2S_SendMsg {
+    message Msg {
+        enum MsgType {
+            MT_TEXT = 0;
+            MT_PIC = 1;
+            MT_VOICE = 2;
+            MT_VIDEO = 3;
+            MT_FILE = 4;
+        }
+        optional MsgType type = 1 [default = MT_TEXT];
+        required string content = 2; //文本为内容，其它为url
+    }
+    optional ProtocolType type = 1 [default = C2S_SEND_MSG];
+    repeated string loginnames = 2;
+    repeated Msg msg = 3;
+}
+
+message S2C_SendMsg {
+    optional ProtocolType type = 1 [default = S2C_SEND_MSG];
+    optional int32 ret = 2;
+}
