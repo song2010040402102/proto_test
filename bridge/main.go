@@ -9,26 +9,12 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
-	"text/template"
 
 	"github.com/astaxie/beego/logs"
 
 	"proto_test/config"
 	"proto_test/protobuf"
 )
-
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		t, err := template.ParseFiles(config.Get().Bridge.Web)
-		if err == nil {
-			t.Execute(w, nil)
-		} else {
-			fmt.Fprintln(w, err.Error())
-		}
-	} else {
-		fmt.Fprintln(w, r.Method, "not support!")
-	}
-}
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
@@ -109,7 +95,7 @@ func init() {
 
 func main() {
 	logs.Notice("server start...")
-	http.HandleFunc("/", indexHandler)
+	http.Handle("/", http.FileServer(http.Dir(config.Get().Bridge.Web)))
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/logout", logoutHandler)
 	http.HandleFunc("/proto", protoHandler)

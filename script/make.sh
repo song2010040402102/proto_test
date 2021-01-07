@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd $(cd $(dirname $0); pwd)
+
 if [ ! -d "../bin" ]; then
   mkdir ../bin
   cp ../config.yaml ../bin

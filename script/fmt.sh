@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd $(cd $(dirname $0); pwd)
+
 fmt_dir(){
     for file in `ls $1`
     do

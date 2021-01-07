@@ -70,7 +70,7 @@ func (cs *Session) Close() {
 
 func (cs *Session) read() {
 	buff := make([]byte, 0, READ_BUFF_SIZE)
-	sum, size := uint32(0), uint32(0)
+	size := uint32(0)
 	for {
 		var data []byte
 		b := make([]byte, READ_BUFF_SIZE)
@@ -81,22 +81,28 @@ func (cs *Session) read() {
 			cs.Close()
 			return
 		}
-		sum += uint32(n)
-		if size == 0 {
-			size = uint32(b[0]) | uint32(b[1])<<8 | uint32(b[2])<<16 | uint32(b[3])<<24
+		buff = append(buff, b[:n]...)
+		if len(buff) < 4 {
+			continue
 		}
-		buff = append(buff, b...)
-		if sum == size+4 {
-			data = buff[4 : size+4]
-			sum, size = 0, 0
+		if size == 0 {
+			size = uint32(buff[0]) | uint32(buff[1])<<8 | uint32(buff[2])<<16 | uint32(buff[3])<<24
+		}
+		for len(buff) >= int(size)+4 {
+			data = make([]byte, size-4)
+			copy(data, buff[4:size])
+			buff = buff[size:]
+			size = uint32(buff[0]) | uint32(buff[1])<<8 | uint32(buff[2])<<16 | uint32(buff[3])<<24
+			if cs.readCallback != nil {
+				cs.readCallback(cs, data)
+			}
+		}
+		if len(buff) == int(size) {
+			data = make([]byte, size-4)
+			copy(data, buff[4:size])
 			buff = buff[:0]
-			cs.readCallback(cs, data)
-		} else {
-			for sum >= size+8 {
-				data = buff[4 : size+4]
-				sum -= size + 4
-				size = uint32(buff[size+4]) | uint32(buff[size+5])<<8 | uint32(buff[size+6])<<16 | uint32(buff[size+7])<<24
-				buff = buff[size+4:]
+			size = 0
+			if cs.readCallback != nil {
 				cs.readCallback(cs, data)
 			}
 		}
@@ -105,17 +111,17 @@ func (cs *Session) read() {
 
 func (cs *Session) write() {
 	for {
-		buff := make([]byte, 4, WRITE_BUFF_SIZE)
+		buff := make([]byte, 0, WRITE_BUFF_SIZE)
 		for {
 			b := <-cs.writeCache
 			if len(b) == 0 {
 				continue
 			}
-			size := uint32(len(b))
-			buff[0] = byte(size & 0xff)
-			buff[1] = byte(size >> 8 & 0xff)
-			buff[2] = byte(size >> 16 & 0xff)
-			buff[3] = byte(size >> 24 & 0xff)
+			size := uint32(len(b)) + 4
+			buff = append(buff, byte(size&0xff))
+			buff = append(buff, byte(size>>8&0xff))
+			buff = append(buff, byte(size>>16&0xff))
+			buff = append(buff, byte(size>>24&0xff))
 			buff = append(buff, b...)
 			if len(cs.writeCache) == 0 || len(buff) >= WRITE_BUFF_SIZE {
 				break

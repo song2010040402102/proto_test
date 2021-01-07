@@ -3,6 +3,6 @@ server:
 
 bridge:
   listen: 0.0.0.0:7002
-  web: ../web/index.html
+  web: ../web
 
 protocol: ../protobuf/protocol

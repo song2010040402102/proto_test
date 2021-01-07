@@ -36,15 +36,15 @@
                   :value="item.value">
                 </el-option>
             </el-select></br>
-            <el-input v-model="form.loginname" placeholder="请输入用户名" clearable style="margin-top:20px;width:300px"></el-input></br>
-            <el-button type="primary" plain @click="login()" style="margin-top:10px">登录</el-button>
+            <el-input v-model="form.loginname" placeholder="Please input loginname" clearable style="margin-top:20px;width:300px"></el-input></br>
+            <el-button type="primary" plain @click="login()" style="margin-top:10px">Login</el-button>
         </el-form>
         <el v-else>
             <el style="float:left;width:30%" align="left">
                 <el-tag v-text="get_label(form.server_options, form.server)"></el-tag>
                 <el-tag v-text="form.loginname"></el-tag>
-                <el-button type="primary" plain @click="logout()" style="margin-left:1%">退出</el-button>
-                <el-select v-model="proto" filterable remote reserve-keyword placeholder="请输入协议" :remote-method="remote_method" @change="proto_change" style="margin-top:1%;width:100%">
+                <el-button type="primary" plain @click="logout()" style="margin-left:1%">Logout</el-button>
+                <el-select v-model="proto" filterable remote reserve-keyword placeholder="Please input proto" :remote-method="remote_method" @change="proto_change" style="margin-top:1%;width:100%">
                     <el-option
                       v-for="item in proto_options"
                       :key="item.value"
@@ -53,10 +53,16 @@
                     </el-option>
                 </el-select>
                 <el-input type="textarea" v-model="proto_para" :rows="42" style="margin-top:1%"></el-input>
-                <el-button type="primary" plain @click="send_proto()" style="margin:1% auto; display: block;">发送</el-button>
+                <el-button type="primary" plain @click="send_proto()" style="margin:1% auto; display: block;">Send</el-button>
             </el>
             <el-table :data="tableData.filter(data => !search || data.msg.toLowerCase().includes(search.toLowerCase()))"
                 :max-height="document.documentElement.clientHeight*0.95" style="width: 70%">
+                <el-table-column type="expand">
+                  <template slot-scope="props">
+                    <span> {{ props.row.msg }} </span>
+                    <span> {{ props.row.detail }} </span>
+                  </template>
+                </el-table-column>
                 <el-table-column sortable label="time" prop="ts" width="300px" align="center">
                 </el-table-column>
                 <el-table-column label="send/recv" prop="dir" width="150px" align="center"
@@ -67,9 +73,9 @@
                 </el-table-column>
                 <el-table-column label="message" prop="msg" width="400px" align="center">
                 </el-table-column>
-                <el-table-column label="" prop="detail" align="left">
+                <el-table-column label="" prop="detail" show-overflow-tooltip="true" align="left">
                     <template slot="header" slot-scope="scope">
-                        <el-input v-model="search" size="mini" placeholder="输入关键字搜索" clearable></el-input>
+                        <el-input v-model="search" size="mini" placeholder="Please input message to search..." clearable></el-input>
                     </template>
                 </el-table-column>
             </el-table>
@@ -82,7 +88,7 @@
                     loginname: "",
                     server: "127.0.0.1:7001",
                     server_options: [
-                        {value: "127.0.0.1:7001", label: '扫地僧服'}
+                        {value: "127.0.0.1:7001", label: 'test server'}
                     ]
                 },
                 login_state: false,
@@ -132,7 +138,7 @@
                             if (msg.ret == 0) {
                                 obj.get_log();
                             } else {
-                                alert("登录失败");
+                                alert("Login failed!");
                             }
                         }
                     });
@@ -146,7 +152,7 @@
                             if (msg.ret == 0) {
                                 obj.reback();
                             } else {
-                                alert("注销失败");
+                                alert("Logout failed!");
                             }
                         }
                     });
@@ -158,7 +164,7 @@
                         if (state == 4 && code == 200) {
                             var msg = JSON.parse(res);
                             if (msg.ret != 0) {
-                                alert("协议发送失败");
+                                alert("Send proto failed!");
                             }
                         }
                     });
@@ -181,7 +187,7 @@
                                     count++;
                                     if (count > 20) {
                                         clearInterval(obj.log_timer);
-                                        alert("登录超时");
+                                        alert("Login timeout!");
                                     }
                                 }
                             }

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd $(cd $(dirname $0); pwd)
+
 while [ "$(ps -e > /tmp/psi && grep "proto_server\|proto_bridge" /tmp/psi)" != "" ]
 do
     sleep 1
